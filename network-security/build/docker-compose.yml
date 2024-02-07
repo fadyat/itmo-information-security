@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  client:
+    container_name: network-security-client
+    build:
+      dockerfile: client.dockerfile
+      context: .
+    networks:
+      - container-network
+    tty: true
+    cap_add:
+      - NET_ADMIN
+  server:
+    container_name: network-security-server
+    build:
+      dockerfile: server.dockerfile
+      context: .
+    networks:
+      - container-network
+    cap_add:
+      - NET_ADMIN
+    tty: true
+    volumes:
+      - ./tshark:/tshark
+
+networks:
+  container-network:
+    driver: bridge
+
