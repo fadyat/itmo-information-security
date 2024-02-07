@@ -2,3 +2,5 @@ http
 udp
 tcp
 tshark
+.gnupg
+secret.*
