@@ -54,7 +54,11 @@ gpg --keyserver hkps://keyserver.ubuntu.com --send-keys 55A938309D29D6F071B55424
 Делаем очень секретный файл для нашего коллеги, который хотим спрятать
 от недоброжелателей.
 
+Скачаем публичный ключ нашего коллеги, чтобы зашифровать файл.
+
 ```shell
+gpg --recv-keys=sergo.elizbarashvily@itmo.ru --keyserver=https://keyserver.ubuntu.com
+
 export RECIPIENT_ID=55A938309D29D6F071B5542406A0CC888F1AE9EC
 
 echo -e "- eat\n- sleep\n- code\n- repeat" > secret.txt
@@ -65,7 +69,8 @@ gpg --encrypt --recipient $RECIPIENT_ID --output encrypted_secret.gpg secret.txt
 ключом.
 
 За счет наличия парного приватного ключа, смотрим что там такого секретного
-нам написали.
+нам написал, придется ввести наш супер секретный passphrase для получения
+контента файла.
 
 ```shell
 export COLLEAGUE_FILE_NAME=encrypted_secret.gpg
@@ -81,7 +86,8 @@ gpg --decrypt $COLLEGE_FILE_NAME > secret-decrypted.txt
 gpg --detach-sign -o secret.sig secret.txt
 ```
 
-Проверяем подпись уважаемого коллеги с публичным ключом.
+Проверяем подпись уважаемого коллеги с публичным ключом (ключ у нас имеется
+так как мы его скачали ранее).
 
 Видим, что коллега настоящий гений своего дела и правильно поставил подпись.
 
