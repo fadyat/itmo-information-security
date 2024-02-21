@@ -383,16 +383,9 @@ Running as user "root" and group "root". This could be dangerous.
 root@e1e587f74020:/#
 ```
 
-Цветной вывод от коллеги с `wireshark`:
+Копируем файл из volume и открываем в UI `wireshark`:
 
 ![](./docs/wireshark.png)
-
-`nmap` посылает серию `TCP` пакетов на удаленный хост и изучает практически каждый бит в ответах. После проведения
-дюжины тестов таких как `TCP ISN` выборки, поддержки опций `TCP`, `IP ID` выборки, и анализа продолжительности процедуры
-инициализации, `nmap` сравнивает результаты со своей `nmap-os-db` базой данных, состоящей из более чем тысячи известных
-наборов типичных результатов для различных ОС и, при нахождении соответствий, выводит информацию об ОС.
-
-В данном примере, например, используются `ICMP` сообщения.
 
 ### Играемся с `snort`
 
@@ -429,65 +422,22 @@ root@e1e587f74020:/# snort -A console -q -c /etc/snort/snort.conf -i eth0
 
 Создадим новую, актуальную, для нас конфигурацию `snort`:
 
+// todo: добавить конфигурацию
+
 ```text
 root@e1e587f74020:/# cat > /etc/snort/snort.conf <<EOF
-alert icmp any any -> 172.21.0.3 echo-request (msg:"Nmap OS Scan Detected - ICMP"; itype:8; sid:1000008;)
-alert tcp any any -> 172.21.0.3 22 (msg:"Nmap OS Scan Detected - SSH"; flags:S; dsize:0; sid:1000005;)
-alert tcp any any -> 172.21.0.3 8080 (msg:"Nmap OS Scan Detected - HTTP"; flags:S; dsize:0; sid:1000006;)
-alert tcp any any -> 172.21.0.3 443 (msg:"Nmap OS Scan Detected - HTTPS"; flags:S; dsize:0; sid:1000007;)
 
-output alert_fast: stdout
 EOF
 ```
 
+// todo: добавить вывод
+
 ```text
-root@e1e587f74020:/# snort -A console -q -c /etc/snort/snort.conf -i eth0
-02/20-17:30:46.425539  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:61512 -> 172.21.0.3:8080
-02/20-17:30:46.425702  [**] [1:1000007:0] Nmap OS Scan Detected - HTTPS [**] [Priority: 0] {TCP} 172.21.0.2:61512 -> 172.21.0.3:443
-02/20-17:30:46.425749  [**] [1:1000005:0] Nmap OS Scan Detected - SSH [**] [Priority: 0] {TCP} 172.21.0.2:61512 -> 172.21.0.3:22
-02/20-17:30:46.558419  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50850 -> 172.21.0.3:8080
-02/20-17:30:46.663615  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50851 -> 172.21.0.3:8080
-02/20-17:30:46.764399  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50852 -> 172.21.0.3:8080
-02/20-17:30:46.865722  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50853 -> 172.21.0.3:8080
-02/20-17:30:46.968977  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50854 -> 172.21.0.3:8080
-02/20-17:30:47.073505  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50855 -> 172.21.0.3:8080
-02/20-17:30:47.102516  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:47.132194  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:48.807157  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50850 -> 172.21.0.3:8080
-02/20-17:30:48.909434  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50851 -> 172.21.0.3:8080
-02/20-17:30:49.012487  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50852 -> 172.21.0.3:8080
-02/20-17:30:49.115866  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50853 -> 172.21.0.3:8080
-02/20-17:30:49.216200  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50854 -> 172.21.0.3:8080
-02/20-17:30:49.318656  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50855 -> 172.21.0.3:8080
-02/20-17:30:49.343987  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:49.370151  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:51.031417  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50850 -> 172.21.0.3:8080
-02/20-17:30:51.135009  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50851 -> 172.21.0.3:8080
-02/20-17:30:51.236611  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50852 -> 172.21.0.3:8080
-02/20-17:30:51.339319  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50853 -> 172.21.0.3:8080
-02/20-17:30:51.443622  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50854 -> 172.21.0.3:8080
-02/20-17:30:51.543918  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50855 -> 172.21.0.3:8080
-02/20-17:30:51.569541  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:51.597520  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:54.771140  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50850 -> 172.21.0.3:8080
-02/20-17:30:54.875512  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50851 -> 172.21.0.3:8080
-02/20-17:30:54.977599  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50852 -> 172.21.0.3:8080
-02/20-17:30:55.081162  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50853 -> 172.21.0.3:8080
-02/20-17:30:55.183088  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50854 -> 172.21.0.3:8080
-02/20-17:30:55.286158  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50855 -> 172.21.0.3:8080
-02/20-17:30:55.311421  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:55.337298  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:56.998465  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50850 -> 172.21.0.3:8080
-02/20-17:30:57.102941  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50851 -> 172.21.0.3:8080
-02/20-17:30:57.204326  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50852 -> 172.21.0.3:8080
-02/20-17:30:57.308838  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50853 -> 172.21.0.3:8080
-02/20-17:30:57.411025  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50854 -> 172.21.0.3:8080
-02/20-17:30:57.511578  [**] [1:1000006:0] Nmap OS Scan Detected - HTTP [**] [Priority: 0] {TCP} 172.21.0.2:50855 -> 172.21.0.3:8080
-02/20-17:30:57.537361  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
-02/20-17:30:57.567195  [**] [1:1000008:0] Nmap OS Scan Detected - ICMP [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
+
 ```
 
 ### Resources
 
 - https://nmap.org/book/osdetect.html
 - https://nmap.org/book/osdetect-methods.html
+- https://docs.snort.org/rules/options/non_payload/flags
