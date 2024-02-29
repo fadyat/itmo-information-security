@@ -1,0 +1,22 @@
+version: "3.9"
+
+name: postgres
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:14.5
+    hostname: postgres
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PORT=5432
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+
+volumes:
+  postgres_data:
+    driver: local

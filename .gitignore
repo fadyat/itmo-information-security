@@ -4,3 +4,4 @@ tcp
 tshark
 .gnupg
 secret.*
+postgres_data
