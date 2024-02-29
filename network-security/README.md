@@ -420,20 +420,56 @@ root@e1e587f74020:/# snort -A console -q -c /etc/snort/snort.conf -i eth0
 
 Видим, что ничего не происходит, но оно и не удивительно, ведь мы удалили конфигурацию.
 
-Создадим новую, актуальную, для нас конфигурацию `snort`:
+Создадим новую, актуальную, для нас конфигурацию `snort` на основе информации, полученной при помощи
+Wireshark.
 
-// todo: добавить конфигурацию
+Имеем:
 
-```text
-root@e1e587f74020:/# cat > /etc/snort/snort.conf <<EOF
+- `icmp ping request with zeroed dsize 120 bytes`
+- `icmp ping request with zeroed dsize 150 bytes`
+- `tcp + FIN, SYN, PSH, URG flags`
+- `tcp + SYN, ECN, CWR, Reserved flags`
+- `tcp + No flags`
 
+```shell
+cat > /etc/snort/snort.conf <<EOF
+alert tcp any any -> any 8080 (msg:"[nmap] TCP FIN, SYN, PSH, URG"; flags: FPSU; sid:1000001;)
+alert tcp any any -> any 8080 (msg:"[nmap] TCP SYN, ECN, CWR"; flags: SEC; sid:1000002;)
+alert tcp any any -> any 8080 (msg:"[nmap] TCP No flags"; flags: 0; sid:1000003;)
+
+alert icmp any any -> any any (msg:"[nmap] ICMP ping request with zeroed dsize 120 bytes"; dsize:120; sid:1000004;)
+alert icmp any any -> any any (msg:"[nmap] ICMP ping request with zeroed dsize 150 bytes"; dsize:150; sid:1000005;)
 EOF
 ```
 
-// todo: добавить вывод
-
 ```text
-
+root@e1e587f74020:/# snort -A console -q -c /etc/snort/snort.conf -i eth0
+02/29-20:19:58.153269  [**] [1:1000004:0] [nmap] ICMP ping request with zeroed dsize 120 bytes [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
+02/29-20:19:58.153395  [**] [1:1000004:0] [nmap] ICMP ping request with zeroed dsize 120 bytes [**] [Priority: 0] {ICMP} 172.21.0.3 -> 172.21.0.2
+02/29-20:19:58.178324  [**] [1:1000005:0] [nmap] ICMP ping request with zeroed dsize 150 bytes [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
+02/29-20:19:58.178396  [**] [1:1000005:0] [nmap] ICMP ping request with zeroed dsize 150 bytes [**] [Priority: 0] {ICMP} 172.21.0.3 -> 172.21.0.2
+02/29-20:19:58.231656  [**] [1:1000002:0] [nmap] TCP SYN, ECN, CWR [**] [Priority: 0] {TCP} 172.21.0.2:47588 -> 172.21.0.3:8080
+02/29-20:19:58.256799  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:19:58.283234  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:19:58.416121  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:19:58.443069  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:19:58.516343  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:19:58.544422  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:19:58.617933  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:19:58.646844  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:20:00.403093  [**] [1:1000004:0] [nmap] ICMP ping request with zeroed dsize 120 bytes [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
+02/29-20:20:00.403241  [**] [1:1000004:0] [nmap] ICMP ping request with zeroed dsize 120 bytes [**] [Priority: 0] {ICMP} 172.21.0.3 -> 172.21.0.2
+02/29-20:20:00.428717  [**] [1:1000005:0] [nmap] ICMP ping request with zeroed dsize 150 bytes [**] [Priority: 0] {ICMP} 172.21.0.2 -> 172.21.0.3
+02/29-20:20:00.428793  [**] [1:1000005:0] [nmap] ICMP ping request with zeroed dsize 150 bytes [**] [Priority: 0] {ICMP} 172.21.0.3 -> 172.21.0.2
+02/29-20:20:00.482238  [**] [1:1000002:0] [nmap] TCP SYN, ECN, CWR [**] [Priority: 0] {TCP} 172.21.0.2:47588 -> 172.21.0.3:8080
+02/29-20:20:00.510838  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:20:00.537719  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:20:00.669205  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:20:00.698385  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:20:00.770207  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:20:00.799443  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
+02/29-20:20:00.872645  [**] [1:1000003:0] [nmap] TCP No flags [**] [Priority: 0] {TCP} 172.21.0.2:47590 -> 172.21.0.3:8080
+02/29-20:20:00.901554  [**] [1:1000001:0] [nmap] TCP FIN, SYN, PSH, URG [**] [Priority: 0] {TCP} 172.21.0.2:47591 -> 172.21.0.3:8080
 ```
 
 ### Resources
