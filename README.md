@@ -1,5 +1,5 @@
 > [!NOTE]
-> Information Security course. ITMO University, 2023
+> Information Security course. ITMO University, 2024
 
 <pre>
     ├── <a href="cryptography">cryptography</a>
